@@ -1,0 +1,16 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+allowBuilds:
+  electron-winstaller: true
+  sharp: true
+  unrs-resolver: true
+
+onlyBuiltDependencies:
+  - electron-winstaller
+  - sharp
+  - unrs-resolver
+  - "@prisma/engines"
+  - prisma
+  - esbuild
