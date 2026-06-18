@@ -64,82 +64,98 @@ export default function ClienteInicioPage() {
         </p>
       </section>
 
-     <section className="bg-white/90 backdrop-blur-md rounded-3xl shadow border border-white/70 p-8">
-  <div className="mb-8">
-    <h2 className="text-3xl font-bold text-[#1C3724]">
-      Calendario de tutorías
-    </h2>
-    <p className="text-[#1C3724]/60 mt-1">
-      Revisa las tutorías disponibles del mes.
-    </p>
-  </div>
-
-  <div className="grid grid-cols-7 border rounded-2xl overflow-hidden bg-white">
-    {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map((dia) => (
-      <div
-        key={dia}
-        className="bg-[#1C3724] text-white text-center font-semibold py-3"
-      >
-        {dia}
-      </div>
-    ))}
-
-    {Array.from({
-      length: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth(),
-        1
-      ).getDay(),
-    }).map((_, i) => (
-      <div key={`empty-${i}`} className="min-h-32 border bg-[#F8F6F2]" />
-    ))}
-
-    {Array.from({
-      length: new Date(
-        new Date().getFullYear(),
-        new Date().getMonth() + 1,
-        0
-      ).getDate(),
-    }).map((_, index) => {
-      const dia = index + 1;
-      const fecha = `${new Date().getFullYear()}-${String(
-        new Date().getMonth() + 1
-      ).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
-
-      const eventos = tutorias.filter(
-        (tutoria) => String(tutoria.fecha).slice(0, 10) === fecha
-      );
-
-      return (
-        <div key={dia} className="min-h-32 border p-2 bg-white">
-          <p className="font-bold text-[#1C3724] mb-2">{dia}</p>
-
-          <div className="space-y-2">
-            {eventos.map((tutoria) => (
-              <div
-                key={tutoria.id}
-                className="rounded-lg px-2 py-2 text-xs text-white shadow"
-                style={{
-                  backgroundColor: tutoria.etiqueta_color || "#80A088",
-                }}
-              >
-                <p className="font-bold leading-tight">
-                  {String(tutoria.hora_inicio).slice(0, 5)}
-                </p>
-                <p className="leading-tight">
-                  {tutoria.materia_codigo
-                    ? `${tutoria.materia_codigo} - `
-                    : ""}
-                  {tutoria.materia_nombre}
-                </p>
-              </div>
-            ))}
+      <section className="bg-white/90 backdrop-blur-md rounded-3xl shadow border border-white/70 p-8">
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h2 className="text-3xl font-bold text-[#1C3724]">
+              Tutorías disponibles
+            </h2>
+            <p className="text-[#1C3724]/60 mt-1">
+              Revisa las próximas tutorías organizadas por fecha.
+            </p>
           </div>
+
+          <Link
+            href="/cliente/tutorias"
+            className="rounded-full bg-[#61370E] text-white px-6 py-3 font-semibold hover:bg-[#4A2809]"
+          >
+            Ver todas
+          </Link>
         </div>
-      );
-    })}
-  </div>
-</section>s
+
+        <div className="space-y-8">
+          {Object.entries(tutoriasPorFecha).map(([fecha, lista]) => (
+            <div key={fecha}>
+              <h3 className="text-xl font-bold text-[#1C3724] mb-4">
+                {fechaBonita(fecha)}
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                {lista.map((tutoria) => (
+                  <Link
+                    key={tutoria.id}
+                    href="/cliente/tutorias"
+                    className="block rounded-3xl bg-[#F8F6F2] border border-gray-100 shadow-sm overflow-hidden hover:scale-[1.01] transition"
+                  >
+                    <div
+                      className="h-3"
+                      style={{
+                        backgroundColor: tutoria.etiqueta_color || "#80A088",
+                      }}
+                    />
+
+                    <div className="p-6">
+                      <div className="flex items-start justify-between gap-3">
+                        <h4 className="text-xl font-bold text-[#1C3724]">
+                          {tutoria.materia_codigo
+                            ? `${tutoria.materia_codigo} - `
+                            : ""}
+                          {tutoria.materia_nombre}
+                        </h4>
+
+                        <span
+                          className="rounded-full px-3 py-1 text-xs font-bold text-white"
+                          style={{
+                            backgroundColor:
+                              tutoria.etiqueta_color || "#80A088",
+                          }}
+                        >
+                          {tutoria.etiqueta_nombre || "Tutoría"}
+                        </span>
+                      </div>
+
+                      <p className="text-[#1C3724]/70 mt-2">
+                        Profesor: {tutoria.profesor_nombre}
+                      </p>
+
+                      <div className="mt-5 flex flex-wrap gap-2 text-sm">
+                        <span className="rounded-full bg-white px-3 py-1 font-semibold">
+                          {String(tutoria.hora_inicio).slice(0, 5)} -{" "}
+                          {String(tutoria.hora_fin).slice(0, 5)}
+                        </span>
+
+                        <span className="rounded-full bg-[#E0C192]/70 px-3 py-1 font-semibold">
+                          Cupos: {tutoria.inscritos}/{tutoria.cupos}
+                        </span>
+
+                        <span className="rounded-full bg-[#788EA4]/20 px-3 py-1 font-semibold">
+                          {tutoria.estado}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {tutorias.length === 0 && (
+            <div className="rounded-3xl bg-[#F8F6F2] p-10 text-center text-[#1C3724]/60">
+              No hay tutorías disponibles por el momento.
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }
