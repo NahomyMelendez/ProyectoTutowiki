@@ -28,10 +28,7 @@ export default function ClienteLayout({
                 Tutorías
               </Link>
 
-              <Link href="/cliente/tutorias" className="hover:text-[#E0C192]">
-                Inscripción
-              </Link>
-
+         
               <Link
                 href="/cliente/perfil"
                 className="rounded-full bg-[#61370E] px-5 py-2 font-semibold hover:bg-[#4A2809]"
