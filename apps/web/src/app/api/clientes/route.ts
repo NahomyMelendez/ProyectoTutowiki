@@ -43,6 +43,30 @@ export async function POST(request: Request) {
       );
     }
 
+    if (password.length < 6) {
+      return NextResponse.json(
+        { ok: false, error: "La contraseña debe tener al menos 6 caracteres" },
+        { status: 400 }
+      );
+    }
+
+    const [correoRows]: any = await connection.query(
+      `
+      SELECT id
+      FROM usuarios
+      WHERE correo = ?
+      LIMIT 1
+      `,
+      [correo]
+    );
+
+    if (correoRows.length > 0) {
+      return NextResponse.json(
+        { ok: false, error: "Ya existe una cuenta con ese correo electrónico" },
+        { status: 409 }
+      );
+    }
+
     await connection.beginTransaction();
 
     const [usuarioResult]: any = await connection.query(

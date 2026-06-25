@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 const menuItems = [
   { label: "Inicio", href: "/admin", icon: "/icons/inicio.png" },
@@ -13,10 +14,11 @@ const menuItems = [
   { label: "Tutorías", href: "/admin/tutorias", icon: "/icons/tutorias.png" },
 ];
 
-const bottomItems = [
-  { label: "Configuración", href: "/admin/configuracion", icon: "/icons/configuracion.png" },
-  { label: "Cerrar sesión", href: "/login", icon: "/icons/cerrar-sesion.png" },
-];
+const bottomItems: {
+  label: string;
+  href: string;
+  icon: string;
+}[] = [];
 
 type AdminPerfil = {
   nombre: string;
@@ -28,9 +30,24 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [admin, setAdmin] = useState<AdminPerfil | null>(null);
 
   useEffect(() => {
+    const usuarioGuardado = localStorage.getItem("usuario");
+
+    if (!usuarioGuardado) {
+      router.push("/login");
+      return;
+    }
+
+    const usuarioActual = JSON.parse(usuarioGuardado);
+
+    if (usuarioActual.tipo_usuario !== "ADMIN") {
+      router.push("/login");
+      return;
+    }
+
     async function cargarAdmin() {
       try {
         const res = await fetch("/api/admin/perfil");
@@ -45,7 +62,12 @@ export default function AdminLayout({
     }
 
     cargarAdmin();
-  }, []);
+  }, [router]);
+
+  function cerrarSesion() {
+    localStorage.removeItem("usuario");
+    router.push("/login");
+  }
 
   return (
     <div className="min-h-screen flex bg-[#F7F7F7] text-[#020202]">
@@ -93,6 +115,20 @@ export default function AdminLayout({
               <span className="font-medium">{item.label}</span>
             </Link>
           ))}
+
+          <button
+            onClick={cerrarSesion}
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-[#705D56] transition text-left"
+          >
+            <Image
+              src="/icons/cerrar-sesion.png"
+              alt="Cerrar sesión"
+              width={24}
+              height={24}
+              className="invert"
+            />
+            <span className="font-medium">Cerrar sesión</span>
+          </button>
         </div>
       </aside>
 
