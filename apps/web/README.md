@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TutoWiki
 
-## Getting Started
+TutoWiki es una plataforma web para la gestión de tutorías académicas, desarrollada con Next.js, React, TypeScript y MySQL.
 
-First, run the development server:
+## Requisitos previos
+
+Antes de ejecutar el proyecto, es necesario tener instalado:
+
+* Node.js (versión 20 o superior)
+* PNPM
+* MySQL Server
+* Git
+
+Puedes verificar las instalaciones con:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+node -v
+pnpm -v
+mysql --version
+git --version
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Clonar el repositorio
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+git clone https://github.com/NahomyMelendez/ProyectoTutowiki.git
 
-## Learn More
+cd ProyectoTutowiki
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Instalar dependencias
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm install
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Configurar la base de datos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Crear un archivo llamado:
+
+```text
+apps/web/.env.local
+```
+
+y agregar las credenciales de tu base de datos:
+
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=tu_contraseña
+DB_NAME=tutowiki
+```
+
+---
+
+## Ejecutar el proyecto
+
+Desde la carpeta raíz del proyecto ejecutar:
+
+```bash
+pnpm --filter web dev
+```
+
+El proyecto estará disponible en:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Integrantes
+
+* Kristel Muñoz
+* Nahomy Meléndez
+* Karla Sibaja
+* Emma Aguirre
+* Joseph Torrentes
