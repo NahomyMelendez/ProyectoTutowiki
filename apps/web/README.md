@@ -1,6 +1,10 @@
 # TutoWiki
 
-TutoWiki es una plataforma web para la gestión de tutorías académicas, desarrollada con Next.js, React, TypeScript y MySQL.
+TutoWiki es una plataforma web para la gestión de tutorías académicas desarrollada con **Next.js, React, TypeScript y MySQL**.
+
+El sistema permite a los estudiantes registrarse, iniciar sesión, consultar tutorías disponibles, inscribirse en ellas y visualizar sus tutorías inscritas. Además, cuenta con un panel administrativo para gestionar materias, profesores, estudiantes, etiquetas y tutorías.
+
+---
 
 ## Requisitos previos
 
@@ -67,11 +71,64 @@ Desde la carpeta raíz del proyecto ejecutar:
 pnpm --filter web dev
 ```
 
+O desde la carpeta `apps/web`:
+
+```bash
+pnpm dev
+```
+
 El proyecto estará disponible en:
 
 ```text
 http://localhost:3000
 ```
+
+---
+
+## Usuarios de prueba
+
+### Administrador
+
+Correo:
+
+```text
+nahomymelendez@gmail.com
+```
+
+Contraseña:
+
+```text
+091125
+```
+
+### Estudiante
+
+Registrar un nuevo usuario desde:
+
+```text
+http://localhost:3000/registro
+```
+
+---
+
+## Funcionalidades implementadas
+
+### Administrador
+
+* Gestión de materias
+* Gestión de profesores
+* Gestión de estudiantes
+* Gestión de etiquetas
+* Gestión de tutorías
+
+### Estudiante
+
+* Registro público
+* Inicio de sesión
+* Inscripción a tutorías
+* Visualización de tutorías inscritas
+* Perfil del estudiante
+* Cierre de sesión
 
 ---
 
