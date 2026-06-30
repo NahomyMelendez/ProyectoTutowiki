@@ -37,3 +37,50 @@ export async function GET(
     );
   }
 }
+
+
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    const { inscripcion_id, estado } = await request.json();
+
+    if (!inscripcion_id || !estado) {
+      return NextResponse.json(
+        { ok: false, error: "inscripcion_id y estado son obligatorios" },
+        { status: 400 }
+      );
+    }
+
+    if (!["INSCRITO", "CANCELADO"].includes(estado)) {
+      return NextResponse.json(
+        { ok: false, error: "Estado inválido" },
+        { status: 400 }
+      );
+    }
+
+    await pool.query(
+      `
+      UPDATE tutorias_estudiantes
+      SET estado = ?
+      WHERE id = ? AND tutoria_id = ?
+      `,
+      [estado, inscripcion_id, id]
+    );
+
+    return NextResponse.json({
+      ok: true,
+      mensaje:
+        estado === "INSCRITO"
+          ? "Estudiante autorizado correctamente"
+          : "Solicitud rechazada correctamente",
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { ok: false, error: error instanceof Error ? error.message : "Error desconocido" },
+      { status: 500 }
+    );
+  }
+}

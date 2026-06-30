@@ -23,12 +23,23 @@ export async function POST(
     const [cuposRows]: any = await connection.query(
       `
       SELECT 
+        t.id,
         t.cupos,
+        t.fecha,
+        t.hora_inicio,
+        t.hora_fin,
+        t.requiere_autorizacion,
         COUNT(CASE WHEN te.estado = 'INSCRITO' THEN 1 END) AS inscritos
       FROM tutorias t
       LEFT JOIN tutorias_estudiantes te ON t.id = te.tutoria_id
       WHERE t.id = ?
-      GROUP BY t.id, t.cupos
+      GROUP BY 
+        t.id,
+        t.cupos,
+        t.fecha,
+        t.hora_inicio,
+        t.hora_fin,
+        t.requiere_autorizacion
       `,
       [id]
     );
@@ -41,8 +52,10 @@ export async function POST(
       );
     }
 
-    const cupos = Number(cuposRows[0].cupos);
-    const inscritos = Number(cuposRows[0].inscritos);
+    const tutoria = cuposRows[0];
+    const cupos = Number(tutoria.cupos);
+    const inscritos = Number(tutoria.inscritos);
+    const requiereAutorizacion = Number(tutoria.requiere_autorizacion) === 1;
 
     if (inscritos >= cupos) {
       await connection.rollback();
@@ -52,20 +65,59 @@ export async function POST(
       );
     }
 
+    const [choques]: any = await connection.query(
+      `
+      SELECT t.id, m.nombre AS materia_nombre
+      FROM tutorias_estudiantes te
+      INNER JOIN tutorias t ON te.tutoria_id = t.id
+      INNER JOIN materias m ON t.materia_id = m.id
+      WHERE te.cliente_id = ?
+        AND te.estado IN ('INSCRITO', 'PENDIENTE')
+        AND t.estado != 'CANCELADA'
+        AND t.id <> ?
+        AND t.fecha = ?
+        AND t.hora_inicio < ?
+        AND t.hora_fin > ?
+      LIMIT 1
+      `,
+      [
+        cliente_id,
+        id,
+        tutoria.fecha,
+        tutoria.hora_fin,
+        tutoria.hora_inicio,
+      ]
+    );
+
+    if (choques.length > 0) {
+      await connection.rollback();
+      return NextResponse.json(
+        {
+          ok: false,
+          error: `No puedes inscribirte: ya tienes otra tutoría en ese horario (${choques[0].materia_nombre}).`,
+        },
+        { status: 400 }
+      );
+    }
+
+    const estadoInscripcion = requiereAutorizacion ? "PENDIENTE" : "INSCRITO";
+
     await connection.query(
       `
       INSERT INTO tutorias_estudiantes (tutoria_id, cliente_id, estado)
-      VALUES (?, ?, 'INSCRITO')
-      ON DUPLICATE KEY UPDATE estado = 'INSCRITO'
+      VALUES (?, ?, ?)
+      ON DUPLICATE KEY UPDATE estado = VALUES(estado)
       `,
-      [id, cliente_id]
+      [id, cliente_id, estadoInscripcion]
     );
 
     await connection.commit();
 
     return NextResponse.json({
       ok: true,
-      mensaje: "Inscripción realizada correctamente",
+      mensaje: requiereAutorizacion
+        ? "Solicitud enviada. El profesor debe autorizar tu inscripción."
+        : "Inscripción realizada correctamente",
     });
   } catch (error) {
     await connection.rollback();

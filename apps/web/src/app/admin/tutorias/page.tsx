@@ -34,6 +34,7 @@ type Tutoria = {
   hora_fin: string;
   estado: string;
   observaciones: string | null;
+  requiere_autorizacion: number;
 };
 
 type EstudianteInscrito = {
@@ -61,6 +62,7 @@ export default function TutoriasPage() {
   const [horaInicio, setHoraInicio] = useState("");
   const [horaFin, setHoraFin] = useState("");
   const [estado, setEstado] = useState("PENDIENTE");
+  const [requiereAutorizacion, setRequiereAutorizacion] = useState(false);
   const [observaciones, setObservaciones] = useState("");
   const [etiquetasSeleccionadas, setEtiquetasSeleccionadas] = useState<number[]>([]);
 
@@ -94,6 +96,7 @@ export default function TutoriasPage() {
     setHoraInicio("");
     setHoraFin("");
     setEstado("PENDIENTE");
+    setRequiereAutorizacion(false);
     setObservaciones("");
     setEtiquetasSeleccionadas([]);
     setEditandoId(null);
@@ -108,17 +111,17 @@ export default function TutoriasPage() {
  async function guardarTutoria(e: React.FormEvent) {
   e.preventDefault();
 
-  const body = {
-    profesor_id: Number(profesorId),
-    materia_id: Number(materiaId),
-    cupos,
-    fecha,
-    hora_inicio: horaInicio,
-    hora_fin: horaFin,
-    estado,
-    observaciones,
-  };
-
+    const body = {
+      profesor_id: Number(profesorId),
+      materia_id: Number(materiaId),
+      cupos,
+      fecha,
+      hora_inicio: horaInicio,
+      hora_fin: horaFin,
+      estado,
+      requiere_autorizacion: requiereAutorizacion,
+      observaciones,
+    };
   const url = editandoId ? `/api/tutorias/${editandoId}` : "/api/tutorias";
   const method = editandoId ? "PUT" : "POST";
 
@@ -171,6 +174,9 @@ export default function TutoriasPage() {
     setHoraInicio(tutoria.hora_inicio);
     setHoraFin(tutoria.hora_fin);
     setEstado(tutoria.estado);
+    setRequiereAutorizacion(
+    tutoria.requiere_autorizacion === 1
+);
     setObservaciones(tutoria.observaciones || "");
   }
 
@@ -192,6 +198,33 @@ export default function TutoriasPage() {
 
     setEstudiantes(data);
   }
+
+  async function actualizarEstadoEstudiante(
+  inscripcionId: number,
+  nuevoEstado: "INSCRITO" | "CANCELADO"
+) {
+  if (!tutoriaSeleccionada) return;
+
+  const res = await fetch(`/api/tutorias/${tutoriaSeleccionada}/estudiantes`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      inscripcion_id: inscripcionId,
+      estado: nuevoEstado,
+    }),
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    alert(data.error || "Error al actualizar estudiante");
+    return;
+  }
+
+  alert(data.mensaje || "Estado actualizado");
+  verEstudiantes(tutoriaSeleccionada);
+  cargarDatos();
+}
 
   return (
     <div>
@@ -329,8 +362,23 @@ export default function TutoriasPage() {
             </div>
           </div>
 
+                <label className="flex items-center gap-3 mb-6">
+        <input
+          type="checkbox"
+          checked={requiereAutorizacion}
+          onChange={(e) => setRequiereAutorizacion(e.target.checked)}
+          className="h-4 w-4"
+        />
+
+        <span className="text-sm font-medium">
+          Requiere autorización del profesor
+        </span>
+      </label>
+
           <label className="block mb-6">
             <span className="text-sm font-medium">Observaciones</span>
+
+
             <textarea
               value={observaciones}
               onChange={(e) => setObservaciones(e.target.value)}
@@ -464,6 +512,39 @@ export default function TutoriasPage() {
                       {estudiante.universidad || "Sin universidad"} -{" "}
                       {estudiante.carrera || "Sin carrera"}
                     </p>
+
+<p className="text-sm font-semibold mt-2">
+  Estado: {estudiante.estado}
+</p>
+
+{estudiante.estado === "PENDIENTE" && (
+  <div className="flex gap-2 mt-3">
+    <button
+      type="button"
+      onClick={() =>
+        actualizarEstadoEstudiante(estudiante.inscripcion_id, "INSCRITO")
+      }
+      className="px-3 py-2 rounded-lg bg-green-100 text-green-700 text-sm"
+    >
+      Autorizar
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        actualizarEstadoEstudiante(estudiante.inscripcion_id, "CANCELADO")
+      }
+      className="px-3 py-2 rounded-lg bg-red-100 text-red-700 text-sm"
+    >
+      Rechazar
+    </button>
+  </div>
+)}
+
+
+
+
+
                   </div>
                 ))}
 

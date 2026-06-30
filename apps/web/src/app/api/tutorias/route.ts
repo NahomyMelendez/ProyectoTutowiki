@@ -18,6 +18,7 @@ export async function GET() {
         t.hora_inicio,
         t.hora_fin,
         t.estado,
+        t.requiere_autorizacion,
         t.observaciones,
         t.fecha_creacion,
         MIN(e.nombre) AS etiqueta_nombre,
@@ -42,6 +43,7 @@ export async function GET() {
         t.hora_inicio,
         t.hora_fin,
         t.estado,
+        t.requiere_autorizacion,
         t.observaciones,
         t.fecha_creacion
       ORDER BY t.fecha ASC, t.hora_inicio ASC
@@ -71,32 +73,68 @@ export async function POST(request: Request) {
       hora_fin,
       estado,
       observaciones,
+      requiere_autorizacion,
     } = body;
+
+    if (hora_inicio >= hora_fin) {
+  return NextResponse.json(
+    { ok: false, error: "La hora de inicio debe ser menor que la hora fin" },
+    { status: 400 }
+  );
+}
+
+const [choques]: any = await pool.query(
+  `
+  SELECT t.id, m.nombre AS materia_nombre
+  FROM tutorias t
+  INNER JOIN materias m ON t.materia_id = m.id
+  WHERE t.profesor_id = ?
+    AND t.fecha = ?
+    AND t.estado != 'CANCELADA'
+    AND t.hora_inicio < ?
+    AND t.hora_fin > ?
+  LIMIT 1
+  `,
+  [profesor_id, fecha, hora_fin, hora_inicio]
+);
+
+if (choques.length > 0) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: `No se puede registrar la tutoría: el profesor ya tiene otra tutoría en ese horario (${choques[0].materia_nombre}).`,
+    },
+    { status: 400 }
+  );
+}
 
     if (!profesor_id || !materia_id || !cupos || !fecha || !hora_inicio || !hora_fin) {
       return NextResponse.json(
         { ok: false, error: "Profesor, materia, cupos, fecha, hora inicio y hora fin son obligatorios" },
         { status: 400 }
       );
+
+      
     }
 
-    await pool.query(
-      `
-      INSERT INTO tutorias 
-      (cliente_id, profesor_id, materia_id, cupos, fecha, hora_inicio, hora_fin, estado, observaciones)
-      VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
-      [
-        profesor_id,
-        materia_id,
-        cupos,
-        fecha,
-        hora_inicio,
-        hora_fin,
-        estado || "PENDIENTE",
-        observaciones || null,
-      ]
-    );
+      await pool.query(
+        `
+        INSERT INTO tutorias 
+        (cliente_id, profesor_id, materia_id, cupos, fecha, hora_inicio, hora_fin, estado, requiere_autorizacion, observaciones)
+        VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `,
+        [
+          profesor_id,
+          materia_id,
+          cupos,
+          fecha,
+          hora_inicio,
+          hora_fin,
+          estado || "PENDIENTE",
+          requiere_autorizacion ? 1 : 0,
+          observaciones || null,
+        ]
+      );
 
     return NextResponse.json({
       ok: true,
